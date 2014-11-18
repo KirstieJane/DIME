@@ -507,6 +507,8 @@ command = ( 'dtifit -k {} -m {} '
 
 if not os.path.isfile(fa_file):
     '    Fitting tensor....'
+    try:
+        os.makedirs(os.path.dirname(fdt_root))
     os.system(command)
 
 print '      Tensor fit complete'
