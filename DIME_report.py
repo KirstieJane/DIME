@@ -404,6 +404,7 @@ bvecs_rot_file = os.path.join(dwi_dir, 'bvecs_rotated')
 
 fdt_root = os.path.join(dwi_dir, 'FDT', sub_id)
 fa_file = fdt_root + '_FA.nii.gz'
+fa_ero_file = fdt_root + '_FA_ero.nii.gz'
 mo_file = fdt_root + '_MO.nii.gz'
 sse_file = fdt_root + '_sse.nii.gz'
 
@@ -520,13 +521,18 @@ if not os.path.isfile(fa_file):
     os.system(command)
 
 print '      Tensor fit complete'
-                                       
-# These files may not yet exist! They probably should!
-#dti_vol0_file = os.path.join(data_dir, 'dti_ec_brain.nii.gz')
-#wm_mask_file = os.path.join(data_dir, 'wm_DTIspace_mask.nii.gz')
 
+#=============================================================================
+# Create a rough white matter mask based on the FA image
+#=============================================================================
+command = ( 'fslmaths {} -ero -ero -thr 0.2 -bin {}'.format(fa_file,
+                                                             fa_ero_file)
 
-#### Now actually run the code
+if not os.path.isfile(fa_ero_file):
+    '    Creating white matter mask by eroding FA image'
+    os.system(command)
+    
+print '      White matter mask created'
 
 #=============================================================================
 # Create a figure that's the same size as an A4 piece of paper
@@ -578,8 +584,8 @@ fig = plot_dti_slices(dwi_ec_brain_file, dwi_ec_brain_mask_file, fig, brainA_gri
 fig = plot_movement_params(dwi_dir, fig, movement_grid)
 fig = add_background(fig, bgB_grid)
 ### WHAT ARE YOU GOING TO DO ABOUT THE WHITE MATTER MASK??
-fig = plot_dti_slices(fa_file, dwi_ec_brain_mask_file, fig, brainB_grid, ['sagittal', 'coronal', 'axial'], cmap='cool')
-fig = tensor_histogram(fa_file, mo_file, sse_file, dwi_ec_brain_mask_file, fig, hist_grid)
+fig = plot_dti_slices(fa_file, fa_ero_file, fig, brainB_grid, ['sagittal', 'coronal', 'axial'], cmap='cool')
+fig = tensor_histogram(fa_file, mo_file, sse_file, fa_ero_file, fig, hist_grid)
 
 
 #=============================================================================
