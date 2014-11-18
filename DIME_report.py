@@ -318,10 +318,10 @@ def report_movement_params(dmri_motion_file, fig, movement_grid):
     ax.text(0.5, 0.92, header_text, transform=ax.transAxes, fontsize=18,
                horizontalalignment='center', verticalalignment='center')
     
-    reference_text = [ u'For more details see:', 
-    u'  Yendiki, A., Koldewyn, K., Kakunoori, S., Kanwisher, N., & Fischl, B. (2013).',
-    u'  Spurious group differences due to head motion in a diffusion MRI study.',
-    u'  NeuroImage, 88, 79–90. doi:10.1016/j.neuroimage.2013.11.027' ]
+    reference_text = [ 'For more details see:', 
+    '    Yendiki, A., Koldewyn, K., Kakunoori, S., Kanwisher, N., & Fischl, B. (2013).',
+    '    Spurious group differences due to head motion in a diffusion MRI study.',
+    '    NeuroImage, 88, 79\-90. doi:10.1016/j.neuroimage.2013.11.027' ]
     
     ax.text(0.03, 0.15, '\n'.join(reference_text), transform=ax.transAxes, fontsize=11,
                horizontalalignment='left', verticalalignment='center')
