@@ -100,7 +100,7 @@ def add_header(fig, grid, sub_id):
     fig.add_subplot(ax)
 
     # The header simply says:
-    header_text = "Diffusion Imaging Motion Evaluation\n\nSubID: {}  Date:________________".format(sub_id[:15].ljust(15,'_'))
+    header_text = "Diffusion Imaging Motion Evaluation\n\nSubID: {}  Date:________________".format(sub_id[:15].ljust(15))
     
     ax.text(0.05, 0.5, header_text, transform=ax.transAxes, fontsize=14,
                    horizontalalignment='left', verticalalignment='center')
