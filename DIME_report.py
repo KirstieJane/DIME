@@ -332,7 +332,7 @@ def report_movement_params(dmri_motion_file, fig, movement_grid):
                             horizontalalignment='center', verticalalignment='center')
 
     # Average Rotation
-    report_text = u'{}: {:2.3f}°'.format('Average Rotation', np.float(motion['AvgRotation']))
+    report_text = u'{}: {:2.3f} deg'.format('Average Rotation', np.float(motion['AvgRotation']))
     ax.text(0.5, 0.63, report_text, transform=ax.transAxes, fontsize=14,
                             horizontalalignment='center', verticalalignment='center')
     
