@@ -357,6 +357,9 @@ def add_header(fig, grid):
 #=============================================================================
 # Read in the arguments from argparse
 arguments, parser = setup_argparser()
+dwi_file = arguments.dwi_file
+bvals_file = arguments.bvals_file
+bvecs_orig_file = arguments.bvecs_file
 
 # Figure out the name of the directory in which the dwi file is saved
 dwi_dir = os.path.dirname(arguments.dwi_file)
@@ -366,6 +369,9 @@ dwi_ec_file = dwi_file.replace('.nii.gz', '_ec.nii.gz')
 dwi_ec_brain_file = dwi_ec_file.replace('.nii.gz', '_brain.nii.gz')
 dmri_motion_file = os.path.join(dwi_dir, 'dmri_motion_output.txt')
 ecclog_file = dwi_ec_file.replace('.nii.gz', '.ecclog')
+shutil.move(bvecs_orig_file, os.path.join(dwi_dir, 'bvecs_orig')
+bvecs_rot_file = os.path.join(dwi_dir, 'bvecs_rotated')
+
 fdt_root = os.path.join(dwi_dir, 'FDT', sub_id)
 fa_file = fdt_root + '_FA.nii.gz'
 mo_file = fdt_root + '_MO.nii.gz'
@@ -386,8 +392,21 @@ if not os.path.isfile(dwi_ec_file):
     print '    Running eddy_correct....'
     os.system(command)
 
-print '    Eddy_correct complete'
-    
+print '      Eddy_correct complete'
+
+#=============================================================================
+# Rotate the bvecs file as a result of the rotations applyed by eddy_correct
+#=============================================================================
+command = 'xfmrot {} {} {}'.format(ecclog_file, 
+                                    bvecs_orig_file, 
+                                    bvecs_rot_file)
+
+if not os.path.isfile(bvecs_rot_file):
+    print '    Rotating bvecs....'
+    os.system(command)
+
+print '      Bvecs rotated'
+
 #=============================================================================
 # Run FSL's brain extraction command
 #=============================================================================
@@ -401,7 +420,7 @@ if not os.path.isfile(dwi_ec_brain_file):
     '    Running brain extraction....'
     os.system(command)
 
-print '    Brain extraction complete'
+print '      Brain extraction complete'
 
 #=============================================================================
 # Run the dmri_motion command that is part of Freesurfer's TRACULA
@@ -419,7 +438,7 @@ if not os.path.isfile(dmri_motion_file):
     '    Extracting motion parameters....'
     os.system(command)
 
-print '    Motion parameters extracted'
+print '      Motion parameters extracted'
 
 #=============================================================================
 # Fit the diffusion tensor by running FSL's FDT command
@@ -430,7 +449,7 @@ command = ( 'dtifit -k {} -m {} '
             ' > {} 2> {}'.format(dwi_ec_file, 
                                     dwi_ec_mask_file,
                                     bvals_file, 
-                                    bvecs_file,
+                                    bvecs_rot_file,
                                     fdt_root,
                                     output_log_file, 
                                     error_log_file) )
