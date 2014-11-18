@@ -407,11 +407,16 @@ fa_file = fdt_root + '_FA.nii.gz'
 mo_file = fdt_root + '_MO.nii.gz'
 sse_file = fdt_root + '_sse.nii.gz'
 
+# Set up the log files
 output_log_file = os.path.join(dwi_dir, 'DIME_report_log_output')
 error_log_file = os.path.join(dwi_dir, 'DIME_report_log_error')
 
-os.remove(output_log_file)
-os.remove(error_log_file)
+# For now delete them every time....
+# I might change this in the future..
+if os.path.exists(output_log_file):
+    os.remove(output_log_file)
+if os.path.exists(error_log_file):
+    os.remove(error_log_file)
 
 #=============================================================================
 # Run FSL's eddy correct
