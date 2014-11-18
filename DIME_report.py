@@ -509,6 +509,9 @@ if not os.path.isfile(fa_file):
     '    Fitting tensor....'
     try:
         os.makedirs(os.path.dirname(fdt_root))
+    except OSError as exception:
+        pass
+        
     os.system(command)
 
 print '      Tensor fit complete'
