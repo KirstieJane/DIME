@@ -477,7 +477,7 @@ command = ( 'dmri_motion --dwi {} '
                                             error_log_file) )
 
 if not os.path.isfile(dmri_motion_file):
-    '    Extracting TRACULA motion parameters....'
+    print '    Extracting TRACULA motion parameters....'
     os.system(command)
 
 print '      TRACULA motion parameters extracted'
@@ -492,7 +492,7 @@ command = 'bet {} {} -f 0.15 -m > {} 2> {}'.format(dwi_ec_file,
 
 
 if not os.path.isfile(dwi_ec_brain_file):
-    '    Running brain extraction....'
+    print '    Running brain extraction....'
     os.system(command)
 
 print '      Brain extraction complete'
@@ -512,7 +512,7 @@ command = ( 'dtifit -k {} -m {} '
                                     error_log_file) )
 
 if not os.path.isfile(fa_file):
-    '    Fitting tensor....'
+    print '    Fitting tensor....'
     try:
         os.makedirs(os.path.dirname(fdt_root))
     except OSError as exception:
@@ -525,11 +525,11 @@ print '      Tensor fit complete'
 #=============================================================================
 # Create a rough white matter mask based on the FA image
 #=============================================================================
-command = ( 'fslmaths {} -ero -ero -thr 0.2 -bin {}'.format(fa_file,
+command = ( 'fslmaths {} -ero -ero -thr 0.1 -bin {}'.format(fa_file,
                                                              fa_ero_file) )
 
 if not os.path.isfile(fa_ero_file):
-    '    Creating white matter mask by eroding FA image'
+    print '    Creating white matter mask by eroding FA image'
     os.system(command)
     
 print '      White matter mask created'
