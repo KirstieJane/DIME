@@ -361,6 +361,7 @@ arguments, parser = setup_argparser()
 dwi_file = arguments.dwi_file
 bvals_file = arguments.bvals_file
 bvecs_orig_file = arguments.bvecs_file
+sub_id = arguments.sub_id
 
 # Figure out the name of the directory in which the dwi file is saved
 dwi_dir = os.path.dirname(arguments.dwi_file)
