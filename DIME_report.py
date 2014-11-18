@@ -88,14 +88,50 @@ def setup_argparser():
     
     return arguments, parser
 
+#=============================================================================
+def add_header(fig, grid, sub_id):
+    '''
+    The usefulness of the DIME report is that you can get lots of information
+    in one place. So let's make a nice pretty header that contains the
+    subject id, a space for the date, and check boxes for "PASS" and "FAIL"
+    '''
+    ax = plt.Subplot(fig, grid[0])
+    fig.add_subplot(ax)
+
+    # The header simply says:
+    header_text = "Diffusion Imaging Motion Evaluation\n\nSubID:_{}  Date:________________".format(sub_id[:15].ljust(15,'_'))
+    
+    ax.text(0.05, 0.5, header_text, transform=ax.transAxes, fontsize=14,
+                   horizontalalignment='left', verticalalignment='center')
+    
+    # On the right we'll add two options:
+    quality_text = "Pass"
+
+    ax.text(0.82, 0.55, quality_text, transform=ax.transAxes, fontsize=18,
+                   horizontalalignment='right', verticalalignment='bottom')
+
+    ax.add_patch(patches.Rectangle((0.84,0.55),0.1,0.35, color='black', fill=False))
+
+    quality_text = "Fail"
+
+    ax.text(0.82, 0.15, quality_text, transform=ax.transAxes, fontsize=18,
+                   horizontalalignment='right', verticalalignment='bottom')
+    
+    ax.add_patch(patches.Rectangle((0.84,0.15),0.1,0.35, color='black', fill=False))
+    
+    # Turn off axis labels
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    ax.set_frame_on(False)
+
+    return fig
+    
 #==============================================================================
 def plot_dti_slices(background_file, overlay_file, fig, grid, ax_name_list, cmap='jet'):
     '''
     plot_dti_slices places an image of an overlay file on top of the given
     background file and then returns it in a particular matplotlib grid
     location within a figure
-
-    
     '''
     #------------------------------------------------------
     # Load the data (background and overlay files)
@@ -319,38 +355,7 @@ def add_background(fig, grid):
     return fig
 
 
-#=============================================================================
-def add_header(fig, grid):
-    ax = plt.Subplot(fig, grid[0])
-    fig.add_subplot(ax)
 
-    # The header simply says:
-    header_text = "Diffusion Tensor Imaging Quality Report\n\nSubID:____________  Date:____________"
-    
-    ax.text(0.05, 0.5, header_text, transform=ax.transAxes, fontsize=14,
-                   horizontalalignment='left', verticalalignment='center')
-    
-    # On the right we'll add two options:
-    quality_text = "Pass"
-
-    ax.text(0.82, 0.55, quality_text, transform=ax.transAxes, fontsize=18,
-                   horizontalalignment='right', verticalalignment='bottom')
-
-    ax.add_patch(patches.Rectangle((0.84,0.55),0.1,0.35, color='black', fill=False))
-
-    quality_text = "Fail"
-
-    ax.text(0.82, 0.15, quality_text, transform=ax.transAxes, fontsize=18,
-                   horizontalalignment='right', verticalalignment='bottom')
-    
-    ax.add_patch(patches.Rectangle((0.84,0.15),0.1,0.35, color='black', fill=False))
-    
-    # Turn off axis labels
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-    ax.set_frame_on(False)
-
-    return fig
 
 
 #=============================================================================
