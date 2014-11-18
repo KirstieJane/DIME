@@ -369,7 +369,7 @@ dwi_ec_file = dwi_file.replace('.nii.gz', '_ec.nii.gz')
 dwi_ec_brain_file = dwi_ec_file.replace('.nii.gz', '_brain.nii.gz')
 dmri_motion_file = os.path.join(dwi_dir, 'dmri_motion_output.txt')
 ecclog_file = dwi_ec_file.replace('.nii.gz', '.ecclog')
-shutil.move(bvecs_orig_file, os.path.join(dwi_dir, 'bvecs_orig')
+shutil.move(bvecs_orig_file, os.path.join(dwi_dir, 'bvecs_orig'))
 bvecs_rot_file = os.path.join(dwi_dir, 'bvecs_rotated')
 
 fdt_root = os.path.join(dwi_dir, 'FDT', sub_id)
