@@ -36,6 +36,7 @@ import matplotlib.pylab as plt
 import nibabel as nib
 import numpy as np
 import pandas as pd
+import shutil
 
 #==============================================================================
 # Define some useful functions
