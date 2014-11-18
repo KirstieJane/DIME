@@ -369,6 +369,7 @@ dwi_dir = os.path.dirname(arguments.dwi_file)
 # Define all the filenames that you're going to create
 dwi_ec_file = dwi_file.replace('.nii.gz', '_ec.nii.gz')
 dwi_ec_brain_file = dwi_ec_file.replace('.nii.gz', '_brain.nii.gz')
+dwi_ec_brain_mask_file = dwi_ec_file.replace('.nii.gz', '_brain_mask.nii.gz')
 dmri_motion_file = os.path.join(dwi_dir, 'dmri_motion_output.txt')
 ecclog_file = dwi_ec_file.replace('.nii.gz', '.ecclog')
 shutil.move(bvecs_orig_file, os.path.join(dwi_dir, 'bvecs_orig'))
@@ -449,7 +450,7 @@ command = ( 'dtifit -k {} -m {} '
             '-r {} -b {} --sse '
             '--save_tensor -o {} '
             ' > {} 2> {}'.format(dwi_ec_file, 
-                                    dwi_ec_mask_file,
+                                    dwi_ec_brain_mask_file,
                                     bvals_file, 
                                     bvecs_rot_file,
                                     fdt_root,
