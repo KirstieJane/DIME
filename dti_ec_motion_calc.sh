@@ -82,12 +82,12 @@ for n in $nums ; do
     # Now calculate the root mean square difference between the
     # current matrix and the refmat - the ABSOLUTE rms - and
     # save as a variable
-    absval=`$FSLDIR/bin/rmsdiff ${dwi_dir}/grot.mat ${dwi_dir}/grot.refmat $basenm`
+    absval=`$FSLDIR/bin/rmsdiff ${dwi_dir}/grot.mat ${dwi_dir}/grot.refmat ${dwi_dir}/$basenm`
 
     # Now calculate the root mean square difference between the
     # current matrix and the oldmat - the RELATIVE rms - and
     # save as a variable
-    relval=`$FSLDIR/bin/rmsdiff ${dwi_dir}/grot.mat ${dwi_dir}/grot.oldmat $basenm`
+    relval=`$FSLDIR/bin/rmsdiff ${dwi_dir}/grot.mat ${dwi_dir}/grot.oldmat ${dwi_dir}/$basenm`
 
     # Copy over the current matrix to grot.oldmat ready for the next loop
     cp ${dwi_dir}/grot.mat ${dwi_dir}/grot.oldmat
@@ -97,8 +97,8 @@ for n in $nums ; do
 
     # Now find all the rotations and translations from the current matrix
     # and save them in ec_rot.txt and ec_trans.txt
-    $FSLDIR/bin/avscale --allparams ${dwi_dir}/grot.mat $basenm | grep 'Rotation Angles' | sed 's/.* = //' >> ${dwi_dir}/ec_rot.txt ;
-    $FSLDIR/bin/avscale --allparams ${dwi_dir}/grot.mat $basenm | grep 'Translations' | sed 's/.* = //' >> ${dwi_dir}/ec_trans.txt ;
+    $FSLDIR/bin/avscale --allparams ${dwi_dir}/grot.mat ${dwi_dir}/$basenm | grep 'Rotation Angles' | sed 's/.* = //' >> ${dwi_dir}/ec_rot.txt ;
+    $FSLDIR/bin/avscale --allparams ${dwi_dir}/grot.mat ${dwi_dir}/$basenm | grep 'Translations' | sed 's/.* = //' >> ${dwi_dir}/ec_trans.txt ;
 
     # Finally, increase the counter and carry on the loop
     m=`echo $m + 1 | bc`;
