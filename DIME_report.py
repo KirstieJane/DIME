@@ -500,7 +500,7 @@ print '      Brain extraction complete'
 # Fit the diffusion tensor by running FSL's FDT command
 #=============================================================================
 command = ( 'dtifit -k {} -m {} '
-            '-r {} -b {} --sse '
+            '-b {} -r {} --sse '
             '--save_tensor -o {} '
             ' > {} 2> {}'.format(dwi_ec_file, 
                                     dwi_ec_brain_mask_file,
