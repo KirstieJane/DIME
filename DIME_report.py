@@ -100,7 +100,7 @@ def add_header(fig, grid, sub_id):
     fig.add_subplot(ax)
 
     # The header simply says:
-    header_text = "Diffusion Imaging Motion Evaluation\n\nSubID:_{}  Date:________________".format(sub_id[:15].ljust(15,'_'))
+    header_text = "Diffusion Imaging Motion Evaluation\n\nSubID: {}  Date:________________".format(sub_id[:15].ljust(15,'_'))
     
     ax.text(0.05, 0.5, header_text, transform=ax.transAxes, fontsize=14,
                    horizontalalignment='left', verticalalignment='center')
@@ -261,9 +261,9 @@ def plot_dti_slices(background_file, overlay_file, fig, grid, ax_name_list, cmap
 #=============================================================================
 def plot_movement_params(dti_dir, fig, grid):
     measures = ['abs', 'rel']
-    measure_suffixes = [ '', '_b0', '_notb0' ]
+    measure_suffixes = [ '', '_notb0' ]
     
-    # Loop through the measure suffixes ('', '_b0', '_notb0')
+    # Loop through the measure suffixes ('', '_notb0')
     # which you can think of as the groups of volumes that are being considered
     # and find the data from each of thoese files
     for i, suffix in enumerate(measure_suffixes):
@@ -285,8 +285,6 @@ def plot_movement_params(dti_dir, fig, grid):
         # Label the x axis according to which plot this is:
         if suffix == '':
             ax.set_xlabel('Volume Number')
-        elif suffix == '_b0':
-            ax.set_xlabel('B0 Volume Number')
         else:
             ax.set_xlabel('Diff weighted Volume Number')
         
@@ -304,6 +302,52 @@ def plot_movement_params(dti_dir, fig, grid):
         
     return fig
 
+#=============================================================================
+def report_movement_params(dmri_motion_file, fig, movement_grid):
+    '''
+    Fill in a little text box with the TRACULA summary measures
+    '''
+    ax = plt.Subplot(fig, grid[2])
+    fig.add_subplot(ax)
+    
+    motion = pd.read_csv(dmri_motion_file, delimiter=' ')
+
+    # Insert some explanatory text
+    header_text = 'TRACULA summary movement measures'
+
+    ax.text(0.5, 0.92, header_text, transform=ax.transAxes, fontsize=18,
+               horizontalalignment='center', verticalalignment='center')
+    
+    reference_text = [ u'For more details see:', 
+    u'  Yendiki, A., Koldewyn, K., Kakunoori, S., Kanwisher, N., & Fischl, B. (2013).',
+    u'  Spurious group differences due to head motion in a diffusion MRI study.',
+    u'  NeuroImage, 88, 79–90. doi:10.1016/j.neuroimage.2013.11.027' ]
+    
+    ax.text(0.03, 0.15, '\n'.join(reference_text), transform=ax.transAxes, fontsize=11,
+               horizontalalignment='left', verticalalignment='center')
+               
+    # Average Translation
+    report_text = '{}: {:2.3f} mm'.format('Average Translation', np.float(motion['AvgTranslation']))
+    ax.text(0.5, 0.78, report_text, transform=ax.transAxes, fontsize=14,
+                            horizontalalignment='center', verticalalignment='center')
+
+    # Average Rotation
+    report_text = u'{}: {:2.3f}°'.format('Average Rotation', np.float(motion['AvgRotation']))
+    ax.text(0.5, 0.63, report_text, transform=ax.transAxes, fontsize=14,
+                            horizontalalignment='center', verticalalignment='center')
+    
+    # Portion of slices with dropout
+    report_text = '{}: {:2.1f}%'.format('Proportion of slices with dropout'.ljust(35), np.float(motion['PercentBadSlices']))
+    ax.text(0.5, 0.48, report_text, transform=ax.transAxes, fontsize=14,
+                            horizontalalignment='center', verticalalignment='center')
+                            
+    # Dropout score
+    report_text = '{}: {:2.1f}'.format('Dropout score', np.float(motion['AvgDropoutScore']))
+    ax.text(0.5, 0.33, report_text, transform=ax.transAxes, fontsize=14,
+                            horizontalalignment='center', verticalalignment='center')
+    
+    
+    return fig
 
 #=============================================================================
 def tensor_histogram(fa_file, mo_file, sse_file, wm_mask_file, fig, grid):
@@ -529,7 +573,7 @@ command = ( 'fslmaths {} -ero -ero -thr 0.1 -bin {}'.format(fa_file,
                                                              fa_ero_file) )
 
 if not os.path.isfile(fa_ero_file):
-    print '    Creating white matter mask by eroding FA image'
+    print '    Creating white matter mask by eroding & thresholding FA image'
     os.system(command)
     
 print '      White matter mask created'
@@ -582,8 +626,8 @@ fig = add_header(fig, header_grid, sub_id)
 fig = add_background(fig, bgA_grid)
 fig = plot_dti_slices(dwi_ec_brain_file, dwi_ec_brain_mask_file, fig, brainA_grid, ['sagittal', 'coronal', 'axial'], cmap='cool_r')
 fig = plot_movement_params(dwi_dir, fig, movement_grid)
+fig = report_movement_params(dmri_motion_file, fig, movement_grid)
 fig = add_background(fig, bgB_grid)
-### WHAT ARE YOU GOING TO DO ABOUT THE WHITE MATTER MASK??
 fig = plot_dti_slices(fa_file, fa_ero_file, fig, brainB_grid, ['sagittal', 'coronal', 'axial'], cmap='cool')
 fig = tensor_histogram(fa_file, mo_file, sse_file, fa_ero_file, fig, hist_grid)
 
