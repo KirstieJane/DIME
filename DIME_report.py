@@ -313,40 +313,45 @@ def report_movement_params(dmri_motion_file, fig, grid):
     motion = pd.read_csv(dmri_motion_file, delimiter=' ')
 
     # Insert some explanatory text
-    header_text = 'TRACULA summary movement measures'
+    header_text = 'TRACULA summary\nmovement measures'
 
-    ax.text(0.5, 0.92, header_text, transform=ax.transAxes, fontsize=18,
+    ax.text(0.5, 0.9, header_text, transform=ax.transAxes, fontsize=10,
                horizontalalignment='center', verticalalignment='center')
     
     reference_text = [ 'For more details see:', 
-    '    Yendiki, A., Koldewyn, K., Kakunoori, S., Kanwisher, N., & Fischl, B. (2013).',
-    '    Spurious group differences due to head motion in a diffusion MRI study.',
-    '    NeuroImage, 88, 79\-90. doi:10.1016/j.neuroimage.2013.11.027' ]
+                        '    Yendiki, A., Koldewyn, K., Kakunoori, S., Kanwisher, N.,',
+                        '    & Fischl, B. (2013). Spurious group differences due to',
+                        '    head motion in a diffusion MRI study. NeuroImage, 88,',
+                        '    79\-90. doi:10.1016/j.neuroimage.2013.11.027' ]
     
-    ax.text(0.03, 0.15, '\n'.join(reference_text), transform=ax.transAxes, fontsize=11,
+    ax.text(0.03, -0.15, '\n'.join(reference_text), transform=ax.transAxes, fontsize=5,
                horizontalalignment='left', verticalalignment='center')
                
     # Average Translation
     report_text = '{}: {:2.3f} mm'.format('Average Translation', np.float(motion['AvgTranslation']))
-    ax.text(0.5, 0.78, report_text, transform=ax.transAxes, fontsize=14,
+    ax.text(0.5, 0.60, report_text, transform=ax.transAxes, fontsize=8,
                             horizontalalignment='center', verticalalignment='center')
 
     # Average Rotation
     report_text = u'{}: {:2.3f} deg'.format('Average Rotation', np.float(motion['AvgRotation']))
-    ax.text(0.5, 0.63, report_text, transform=ax.transAxes, fontsize=14,
+    ax.text(0.5, 0.45, report_text, transform=ax.transAxes, fontsize=8,
                             horizontalalignment='center', verticalalignment='center')
     
     # Portion of slices with dropout
     report_text = '{}: {:2.1f}%'.format('Proportion of slices with dropout'.ljust(35), np.float(motion['PercentBadSlices']))
-    ax.text(0.5, 0.48, report_text, transform=ax.transAxes, fontsize=14,
+    ax.text(0.5, 0.30, report_text, transform=ax.transAxes, fontsize=8,
                             horizontalalignment='center', verticalalignment='center')
                             
     # Dropout score
     report_text = '{}: {:2.1f}'.format('Dropout score', np.float(motion['AvgDropoutScore']))
-    ax.text(0.5, 0.33, report_text, transform=ax.transAxes, fontsize=14,
+    ax.text(0.5, 0.15, report_text, transform=ax.transAxes, fontsize=8,
                             horizontalalignment='center', verticalalignment='center')
     
-    
+    # Turn off axis labels
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    ax.set_frame_on(False)
+
     return fig
 
 #=============================================================================
