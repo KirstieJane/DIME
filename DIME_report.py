@@ -511,11 +511,12 @@ hist_grid.update(left=0.1, right=0.95, top = 0.18, bottom = 0.05, wspace=0.2)
 
 fig = add_header(fig, header_grid)
 fig = add_background(fig, bgA_grid)
-fig = plot_dti_slices(dti_vol0_file, mask_file, fig, brainA_grid, ['sagittal', 'coronal', 'axial'], cmap='cool_r')
-fig = plot_movement_params(data_dir, fig, movement_grid)
+fig = plot_dti_slices(dwi_ec_brain_file, dwi_ec_brain_mask_file, fig, brainA_grid, ['sagittal', 'coronal', 'axial'], cmap='cool_r')
+fig = plot_movement_params(dwi_dir, fig, movement_grid)
 fig = add_background(fig, bgB_grid)
-fig = plot_dti_slices(fa_file, wm_mask_file, fig, brainB_grid, ['sagittal', 'coronal', 'axial'], cmap='cool')
-fig = tensor_histogram(fa_file, mo_file, sse_file, wm_mask_file, fig, hist_grid)
+### WHAT ARE YOU GOING TO DO ABOUT THE WHITE MATTER MASK??
+fig = plot_dti_slices(fa_file, dwi_ec_brain_mask_file, fig, brainB_grid, ['sagittal', 'coronal', 'axial'], cmap='cool')
+fig = tensor_histogram(fa_file, mo_file, sse_file, dwi_ec_brain_mask_file, fig, hist_grid)
 
 
 #=============================================================================
