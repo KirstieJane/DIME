@@ -526,7 +526,7 @@ print '      Tensor fit complete'
 # Create a rough white matter mask based on the FA image
 #=============================================================================
 command = ( 'fslmaths {} -ero -ero -thr 0.2 -bin {}'.format(fa_file,
-                                                             fa_ero_file)
+                                                             fa_ero_file) )
 
 if not os.path.isfile(fa_ero_file):
     '    Creating white matter mask by eroding FA image'
