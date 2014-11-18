@@ -303,7 +303,7 @@ def plot_movement_params(dti_dir, fig, grid):
     return fig
 
 #=============================================================================
-def report_movement_params(dmri_motion_file, fig, movement_grid):
+def report_movement_params(dmri_motion_file, fig, grid):
     '''
     Fill in a little text box with the TRACULA summary measures
     '''
