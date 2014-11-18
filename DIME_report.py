@@ -514,7 +514,7 @@ hist_grid.update(left=0.1, right=0.95, top = 0.18, bottom = 0.05, wspace=0.2)
 # Fill in these plotting areas using the functions defined above
 #=============================================================================
 
-fig = add_header(fig, header_grid)
+fig = add_header(fig, header_grid, sub_id)
 fig = add_background(fig, bgA_grid)
 fig = plot_dti_slices(dwi_ec_brain_file, dwi_ec_brain_mask_file, fig, brainA_grid, ['sagittal', 'coronal', 'axial'], cmap='cool_r')
 fig = plot_movement_params(dwi_dir, fig, movement_grid)
