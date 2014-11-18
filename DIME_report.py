@@ -389,6 +389,9 @@ sub_id = arguments.sub_id
 # Figure out the name of the directory in which the dwi file is saved
 dwi_dir = os.path.dirname(arguments.dwi_file)
 
+# Figure out the name of the DIME scripts directory
+dime_scripts_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+
 # Define all the filenames that you're going to create
 dwi_ec_file = dwi_file.replace('.nii.gz', '_ec.nii.gz')
 dwi_ec_brain_file = dwi_ec_file.replace('.nii.gz', '_brain.nii.gz')
@@ -421,7 +424,7 @@ if not os.path.isfile(dwi_ec_file):
 print '      Eddy_correct complete'
 
 #=============================================================================
-# Rotate the bvecs file as a result of the rotations applyed by eddy_correct
+# Rotate the bvecs file as a result of the rotations applied by eddy_correct
 #=============================================================================
 command = 'xfmrot {} {} {}'.format(ecclog_file, 
                                     bvecs_orig_file, 
@@ -432,6 +435,40 @@ if not os.path.isfile(bvecs_rot_file):
     os.system(command)
 
 print '      Bvecs rotated'
+
+#=============================================================================
+# Extract motion values as calculated by eddy_correct
+#=============================================================================
+# NOTE That this can probably be wrapped into the dmri_motion
+# command - there's just a hidden flag that I don't know about....
+motion_calc_script = os.path.join(dime_scripts_dir, 'dti_ec_motion_calc.sh')
+command = '{}/dti_ec_motion_calc.sh {} {}'.format(motion_calc_script,
+                                                    ecclog_file,
+                                                    bvals_file)
+
+if not os.path.isfile(os.path.join(dwi_dir, 'ec_rot.txt')):
+    print '    Extracting FSL motion measures....'
+    os.system(command)
+
+print '      FSL motion measures extracted'
+
+#=============================================================================
+# Run the dmri_motion command that is part of Freesurfer's TRACULA
+#=============================================================================
+command = ( 'dmri_motion --dwi {} '
+            '--bval {} --mat {} '
+            '--out {} > {} 2> {}'.format(dwi_file, 
+                                            bvals_file, 
+                                            ecclog_file, 
+                                            dmri_motion_file,
+                                            output_log_file, 
+                                            error_log_file) )
+
+if not os.path.isfile(dmri_motion_file):
+    '    Extracting TRACULA motion parameters....'
+    os.system(command)
+
+print '      TRACULA motion parameters extracted'
 
 #=============================================================================
 # Run FSL's brain extraction command
@@ -449,24 +486,6 @@ if not os.path.isfile(dwi_ec_brain_file):
 print '      Brain extraction complete'
 
 #=============================================================================
-# Run the dmri_motion command that is part of Freesurfer's TRACULA
-#=============================================================================
-command = ( 'dmri_motion --dwi {} '
-            '--bval {} --mat {} '
-            '--out {} > {} 2> {}'.format(dwi_file, 
-                                            bvals_file, 
-                                            ecclog_file, 
-                                            dmri_motion_file,
-                                            output_log_file, 
-                                            error_log_file) )
-
-if not os.path.isfile(dmri_motion_file):
-    '    Extracting motion parameters....'
-    os.system(command)
-
-print '      Motion parameters extracted'
-
-#=============================================================================
 # Fit the diffusion tensor by running FSL's FDT command
 #=============================================================================
 command = ( 'dtifit -k {} -m {} '
@@ -480,7 +499,6 @@ command = ( 'dtifit -k {} -m {} '
                                     output_log_file, 
                                     error_log_file) )
                                         
-
 # These files may not yet exist! They probably should!
 #dti_vol0_file = os.path.join(data_dir, 'dti_ec_brain.nii.gz')
 #wm_mask_file = os.path.join(data_dir, 'wm_DTIspace_mask.nii.gz')
