@@ -125,6 +125,26 @@ def add_header(fig, grid, sub_id):
     ax.set_frame_on(False)
 
     return fig
+
+#=============================================================================
+def add_background(fig, grid):
+    '''
+    Make the background of the grid black so it looks nice :)
+    '''
+    ax = plt.Subplot(fig, grid[0])
+    fig.add_subplot(ax)
+
+    # Add a black background
+    black = ax.imshow(np.ones([100,100]),
+                            interpolation='none',
+                            cmap='gray',
+                            aspect='auto')
+    # Turn off axis labels
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    ax.set_frame_on(False)
+
+    return fig
     
 #==============================================================================
 def plot_dti_slices(background_file, overlay_file, fig, grid, ax_name_list, cmap='jet'):
@@ -159,6 +179,10 @@ def plot_dti_slices(background_file, overlay_file, fig, grid, ax_name_list, cmap
     overlay = overlay / overlay.max()    
         
     # Now we're going to loop through the different slice orientations
+    # There is almost certainly a better way to do this. If you know 
+    # of any tools that do this in just a few lines (probably in nipy?)
+    # please do let Kirstie (HappyPenguin) know on GitHub
+    # www.github.com/HappyPenguin/DIME
 
     for i, axis_name in enumerate(ax_name_list):
         if axis_name == 'axial':
@@ -178,15 +202,25 @@ def plot_dti_slices(background_file, overlay_file, fig, grid, ax_name_list, cmap
             overlay_plot = np.flipud(np.swapaxes(overlay, 0, 2))
             bg_plot = np.flipud(np.swapaxes(bg, 0, 2))
 
-        n = ( np.float(bg_plot.shape[1])/bg_plot.shape[2] ) * (np.float(figsize[0])/ (0.15 * figsize[1]))
+        # Calculate the number of images that you can fit on the page
+        # n = height/width for bg_plot / height/0.15*width for figure
+        # This gives a slight overlap of 0.15*width so you don't
+        # waste too much space
+        n = (( np.float(bg_plot.shape[1])/bg_plot.shape[2] ) 
+                * (np.float(figsize[0])/ (0.15 * figsize[1])))
 
+        # Round the number of images you can fit on the page to 
+        # the lowest integer
         n_floor = np.int(np.floor(n))
         
+        # Create a grid that contains spaces for the n images
         inner_grid = gridspec.GridSpecFromSubplotSpec(1, n_floor,
                          subplot_spec=grid[i], wspace=0.0, hspace=0.0)
         
+        # Loop through the volume plotting n evenly spaced images:
         for j, slice_id in enumerate(np.linspace(0 , bg_plot.shape[2], n_floor+2)[1:-1]):
         
+            # Define the slices you want to show
             bg_slice = bg_plot[:,:,slice_id]
             overlay_slice = overlay_plot[:,:,slice_id]
             
@@ -198,7 +232,7 @@ def plot_dti_slices(background_file, overlay_file, fig, grid, ax_name_list, cmap
                                     interpolation='none',
                                     cmap='gray')
             
-            # Mask the data
+            # Mask the overlay data
             m_overlay_slice = np.ma.masked_where(overlay_slice==0, overlay_slice)
 
             # First show the background slice
@@ -337,22 +371,6 @@ def tensor_histogram(fa_file, mo_file, sse_file, wm_mask_file, fig, grid):
     return fig
 
 
-#=============================================================================
-def add_background(fig, grid):
-    ax = plt.Subplot(fig, grid[0])
-    fig.add_subplot(ax)
-
-    # Add a black background
-    black = ax.imshow(np.ones([100,100]),
-                            interpolation='none',
-                            cmap='gray',
-                            aspect='auto')
-    # Turn off axis labels
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-    ax.set_frame_on(False)
-
-    return fig
 
 
 
