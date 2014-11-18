@@ -410,6 +410,9 @@ sse_file = fdt_root + '_sse.nii.gz'
 output_log_file = os.path.join(dwi_dir, 'DIME_report_log_output')
 error_log_file = os.path.join(dwi_dir, 'DIME_report_log_error')
 
+os.remove(output_log_file)
+os.remove(error_log_file)
+
 #=============================================================================
 # Run FSL's eddy correct
 #=============================================================================
@@ -501,7 +504,13 @@ command = ( 'dtifit -k {} -m {} '
                                     fdt_root,
                                     output_log_file, 
                                     error_log_file) )
-                                        
+
+if not os.path.isfile(fa_file):
+    '    Fitting tensor....'
+    os.system(command)
+
+print '      Tensor fit complete'
+                                       
 # These files may not yet exist! They probably should!
 #dti_vol0_file = os.path.join(data_dir, 'dti_ec_brain.nii.gz')
 #wm_mask_file = os.path.join(data_dir, 'wm_DTIspace_mask.nii.gz')
