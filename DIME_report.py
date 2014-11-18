@@ -37,6 +37,7 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 import shutil
+import sys
 
 #==============================================================================
 # Define some useful functions
