@@ -443,10 +443,12 @@ print '      Bvecs rotated'
 # NOTE That this can probably be wrapped into the dmri_motion
 # command - there's just a hidden flag that I don't know about....
 motion_calc_script = os.path.join(dime_scripts_dir, 'dti_ec_motion_calc.sh')
-command = '{} {} {}'.format(motion_calc_script,
-                                ecclog_file,
-                                bvals_file)
-
+command = '{} {} {} > {} 2> {}'.format(motion_calc_script,
+                                            ecclog_file,
+                                            bvals_file,
+                                            output_log_file, 
+                                            error_log_file)
+                                            
 if not os.path.isfile(os.path.join(dwi_dir, 'ec_rot.txt')):
     print '    Extracting FSL motion measures....'
     os.system(command)

@@ -4,26 +4,27 @@
 # https://www.jiscmail.ac.uk/cgi-bin/webadmin?A2=FSL;4f8352a3.1101
 
 # Commented and edited by Kirstie Whitaker (kw401@cam.ac.uk) on 3rd February 2014
+# Specifically added the ability to not calculate the difference
+# between b0 images and diffusion weighted images
 
 # Define usage function
-if [[ $# -lt 2 ]] ; then 
+if [ $# -lt 2 ] ; then 
   echo "Usage: `basename $0` <eddy current ecclog file> <bvals file>"
   exit 1;
 fi
 
-# Read in ecclog file
-logfile=$1;
+# Read in ecclog file and the bvals file
+logfile=$1
+bvalsfile=$2
 
 # Define the directory in which the ecclog file resides
 dwi_dir=`dirname ${logfile}`
 
 # Remove files that are created by this script
-rm -f ${dwi_dir}/ec_disp.txt
-rm -f ${dwi_dir}/ec_rot.txt
-rm -f ${dwi_dir}/ec_trans.txt
+rm -f ${dwi_dir}/ec_*.txt
 
 # Get the basename (which is also the basename of the eddy corrected nifti file)
-basenm=`basename $logfile .ecclog`;
+basenm=`basename $logfile .ecclog`
 
 # Find the line numbers for the line before each of the registration matrices
 # by searching for the word "Final", which precedes 4 rows that look like:
@@ -40,86 +41,148 @@ basenm=`basename $logfile .ecclog`;
 #     0.000000 0.000000 0.000000 1.000000           line number: n2
 #
 # The variable nums contains the line numbers of the word "Final"
-nums=`grep -n 'Final' $logfile | sed 's/:.*//'`; 
+nums=(`grep -n 'Final' $logfile | sed 's/:.*//'`)
 
-# Create grot.mat file
-touch ${dwi_dir}/grot.mat
+# The variable bvals contains the bvalue for each of these transformations
+bvals=(`cat ${bvalsfile}`)
 
 # Set a variable saying that we're starting so we know to keep the next file as
 # the first volume for calculating the absolute movement
-firsttime=yes;
+firsttime=yes
+
+# Set two variables saying whether we've found the first diffusion weighted image
+# or the first b0 image
+foundfirstnotb0=no
+foundfirstb0=no
 
 # Set a counter going for each registration matrix
-m=1;
+i=0
 
 # Loop through each of the registration volumes
-for n in $nums ; do 
+while [[ $i -lt  ${#bvals[@]} ]]; do
+    n=${nums[i]} 
+    b=${bvals[i]}
 
-    # Print each numbered volume to screen
-    echo "Timepoint $m"
-
-    # Calculate the line numbers of the first (n1) and last (n2) lines
-    # for the regisration matrix (see above for example)
-    n1=`echo $n + 1 | bc` ; 
-    n2=`echo $n + 5 | bc` ;
-
-    # Write the matrix into the grot.mat file
-    # note that this overwrites the file each time
-    sed -n  "$n1,${n2}p" $logfile > ${dwi_dir}/grot.mat ; 
-
-    # If this is the first time you're running this loop
-    # then save the matrix as grot.refmat, change the firsttime marker
-    # and copy over the matrix to grot.oldmat
-    if [ $firsttime = yes ]; then
-        firsttime=no
-        cp ${dwi_dir}/grot.mat ${dwi_dir}/grot.refmat
-        cp ${dwi_dir}/grot.mat ${dwi_dir}/grot.oldmat
+    # Figure out if you're looking at a b0 volume or not
+    if [[ `echo "${b} < 50" | bc` == 1 ]]; then
+        b0=yes
+    else
+        b0=no
     fi
 
-    # The refmat will be the same for all the rest of the comparisons
-    # and the oldmat will be the one directly before the current matrix
+    # Calculate the line numbers of the first (n1) and last (n2) lines
+    # for the registration matrix (see above for example)
+    n1=`echo $n + 1 | bc` ; 
+    n2=`echo $n + 5 | bc` ;
+    # Write the matrix into the current.mat file
+    # note that this overwrites the file each time
+    sed -n  "$n1,${n2}p" $logfile > ${dwi_dir}/current.mat ; 
+
+    # If this is the first time you're running this loop
+    # then save the matrix as first.mat, change the firsttime marker
+    # and copy over the matrix to previous.mat
+    # The first.mat will be the same for all the rest of the comparisons
+    # and the previous.mat will be the one directly before the current matrix
+    if [[ $firsttime = yes ]]; then
+        firsttime=no
+        cp ${dwi_dir}/current.mat ${dwi_dir}/first.mat
+        cp ${dwi_dir}/current.mat ${dwi_dir}/previous.mat
+    fi
+
+    # If you haven't yet found the first non b0
+    # then save this one as the firstnotb0.mat
+    if [[ $foundfirstnotb0 == no && ${b0} == 'no' ]]; then
+        cp ${dwi_dir}/current.mat ${dwi_dir}/firstnotb0.mat
+        cp ${dwi_dir}/current.mat ${dwi_dir}/previousnotb0.mat
+        foundfirstnotb0=yes
+    fi
+
+    # If you haven't yet found the first b0
+    # then save this one as the firstb0.mat
+    if [[ $foundfirstb0 == no && ${b0} == 'yes' ]]; then
+        cp ${dwi_dir}/current.mat ${dwi_dir}/firstb0.mat
+        cp ${dwi_dir}/current.mat ${dwi_dir}/previousb0.mat
+        foundfirstb0=yes
+    fi
+
+
 
     # Now calculate the root mean square difference between the
-    # current matrix and the refmat - the ABSOLUTE rms - and
-    # save as a variable
-    absval=`$FSLDIR/bin/rmsdiff ${dwi_dir}/grot.mat ${dwi_dir}/grot.refmat ${dwi_dir}/$basenm`
+    # current matrix and the four possibilities:
+    ### ABSOLUTE DIFFERENCE COMPARED TO FIRST
+    absval=`$FSLDIR/bin/rmsdiff ${dwi_dir}/current.mat ${dwi_dir}/first.mat ${dwi_dir}/$basenm`
 
-    # Now calculate the root mean square difference between the
-    # current matrix and the oldmat - the RELATIVE rms - and
-    # save as a variable
-    relval=`$FSLDIR/bin/rmsdiff ${dwi_dir}/grot.mat ${dwi_dir}/grot.oldmat ${dwi_dir}/$basenm`
+    ### RELATIVE DIFFERENCE COMPARED TO PREVIOUS
+    relval=`$FSLDIR/bin/rmsdiff ${dwi_dir}/current.mat ${dwi_dir}/previous.mat ${dwi_dir}/$basenm`
 
-    # Copy over the current matrix to grot.oldmat ready for the next loop
-    cp ${dwi_dir}/grot.mat ${dwi_dir}/grot.oldmat
+    # If you've found the first b0, then we can compare the 
+    # current volume to the first and previous not b0 volumes
+    # Note that this is only meaningful for the non-b0 volumes
+    # but we'll run all of the comparisons for ease.
+    # Just don't consider them when you calculate the means etc!
+    if [[ ${b0} == 'no' ]]; then
+        
+        ### ABSOLUTE DIFFERENCE COMPARED TO FIRST NON-B0
+        absvalnotb0=`$FSLDIR/bin/rmsdiff ${dwi_dir}/current.mat ${dwi_dir}/firstnotb0.mat ${dwi_dir}/$basenm`
 
+        ### RELATIVE DIFFERENCE COMPARED TO PREVIOUS NON-B0
+
+        relvalnotb0=`$FSLDIR/bin/rmsdiff ${dwi_dir}/current.mat ${dwi_dir}/previousnotb0.mat ${dwi_dir}/$basenm`
+
+        ### ABSOLUTE DIFFERENCE COMPARED TO FIRST B0
+        # doesn't mean anything (will be subject to artefact)
+        absvalb0='.'
+
+        ### RELATIVE DIFFERENCE COMPARED TO PREVIOUS B0
+        # doesn't mean anything (will be subject to artefact)
+        relvalb0='.'
+
+    elif [[ ${b0} == 'yes' ]]; then
+        ### ABSOLUTE DIFFERENCE COMPARED TO FIRST NON-B0
+        # doesn't mean anything (will be subject to artefact)
+        absvalnotb0='.'
+
+        ### RELATIVE DIFFERENCE COMPARED TO PREVIOUS NON-B0
+        # doesn't mean anything (will be subject to artefact)
+        relvalnotb0='.'
+
+        ### ABSOLUTE DIFFERENCE COMPARED TO FIRST B0
+        absvalb0=`$FSLDIR/bin/rmsdiff ${dwi_dir}/current.mat ${dwi_dir}/firstb0.mat ${dwi_dir}/$basenm`
+
+        ### RELATIVE DIFFERENCE COMPARED TO PREVIOUS B0
+        relvalb0=`$FSLDIR/bin/rmsdiff ${dwi_dir}/current.mat ${dwi_dir}/previousb0.mat ${dwi_dir}/$basenm`
+    else
+        ### None of the values will mean anything so don't fill them in
+        absvalnotb0='.'
+        relvalnotb0='.'
+        absvalb0='.'
+        relvalb0='.'         
+    fi
+    
     # Write the absolute and relative rms values into the ec_disp.txt file
     echo $absval $relval >> ${dwi_dir}/ec_disp.txt
+    echo $absvalnotb0 $relvalnotb0 >> ${dwi_dir}/ec_disp_notb0.txt
+    echo $absvalb0 $relvalb0 >> ${dwi_dir}/ec_disp_b0.txt
+
+    # Copy over the current matrix to previous.mat ready for the next loop
+    cp ${dwi_dir}/current.mat ${dwi_dir}/previous.mat
+
+    # If the current matrix does not represent a b0 acquisition
+    # then copy this to previousnotb0.mat
+    if [[ $b0 == no ]]; then
+        cp ${dwi_dir}/current.mat ${dwi_dir}/previousnotb0.mat
+    else
+        cp ${dwi_dir}/current.mat ${dwi_dir}/previousb0.mat
+    fi
 
     # Now find all the rotations and translations from the current matrix
     # and save them in ec_rot.txt and ec_trans.txt
-    $FSLDIR/bin/avscale --allparams ${dwi_dir}/grot.mat ${dwi_dir}/$basenm | grep 'Rotation Angles' | sed 's/.* = //' >> ${dwi_dir}/ec_rot.txt ;
-    $FSLDIR/bin/avscale --allparams ${dwi_dir}/grot.mat ${dwi_dir}/$basenm | grep 'Translations' | sed 's/.* = //' >> ${dwi_dir}/ec_trans.txt ;
+    $FSLDIR/bin/avscale --allparams ${dwi_dir}/current.mat ${dwi_dir}/$basenm | grep 'Rotation Angles' | sed 's/.* = //' >> ${dwi_dir}/ec_rot.txt ;
+    $FSLDIR/bin/avscale --allparams ${dwi_dir}/current.mat ${dwi_dir}/$basenm | grep 'Translations' | sed 's/.* = //' >> ${dwi_dir}/ec_trans.txt ;
 
     # Finally, increase the counter and carry on the loop
-    m=`echo $m + 1 | bc`;
+    i=`echo $i + 1 | bc`
 done
-
-# The plots below have been commented out, but left here in case you want to turn them on again!
-# # Create a time series plot of the mean displacement
-# # Set up the grot_labels. txt file
-# echo "absolute" > ${dwi_dir}/grot_labels.txt
-# echo "relative" >> ${dwi_dir}/grot_labels.txt
-# # And make the plot from ec_disp.txt (created above) saved as ec_disp.png
-# $FSLDIR/bin/fsl_tsplot -i ${dwi_dir}/ec_disp.txt -t 'Eddy Current estimated mean displacement (mm)' -l ${dwi_dir}/grot_labels.txt -o ${dwi_dir}/ec_disp.png
-
-# # Create a timeseries plot of the rotations and translations
-# # Update the labels
-# echo "x" > ${dwi_dir}/grot_labels.txt
-# echo "y" >> ${dwi_dir}/grot_labels.txt
-# echo "z" >> ${dwi_dir}/grot_labels.txt
-# # Make the plots from the ec_rot.txt and ec_trans.txt files created above
-# $FSLDIR/bin/fsl_tsplot -i ${dwi_dir}/ec_rot.txt -t 'Eddy Current estimated rotations (radians)' -l ${dwi_dir}/grot_labels.txt -o ${dwi_dir}/ec_rot.png
-# $FSLDIR/bin/fsl_tsplot -i ${dwi_dir}/ec_trans.txt -t 'Eddy Current estimated translations (mm)' -l ${dwi_dir}/grot_labels.txt -o ${dwi_dir}/ec_trans.png
 
 # clean up temp files
 /bin/rm -f ${dwi_dir}/grot_labels.txt ${dwi_dir}/grot.oldmat ${dwi_dir}/grot.refmat ${dwi_dir}/grot.mat 
