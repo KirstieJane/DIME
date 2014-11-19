@@ -572,7 +572,7 @@ if not os.path.isfile(fa_file):
 print '      Tensor fit complete'
 
 #=============================================================================
-# Create a rough white matter mask from MNI space
+# Create a rough white matter mask from the FA image
 #=============================================================================
 command = ( 'fslmaths {} -ero -ero -thr 0.1 -bin {}'.format(fa_file,
                                                              fa_ero_file) )
