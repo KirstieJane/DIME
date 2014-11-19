@@ -534,10 +534,10 @@ print '      TRACULA motion parameters extracted'
 #=============================================================================
 # Run FSL's brain extraction command
 #=============================================================================
-command = 'bet {} {} -f 0.15 -m -A > {} 2> {}'.format(dwi_ec_file, 
-                                                        dwi_ec_brain_file,
-                                                        output_log_file, 
-                                                        error_log_file)
+command = 'bet {} {} -f 0.15 -m > {} 2> {}'.format(dwi_ec_file, 
+                                                    dwi_ec_brain_file,
+                                                    output_log_file, 
+                                                    error_log_file)
 
 
 if not os.path.isfile(dwi_ec_brain_file):
@@ -572,7 +572,7 @@ if not os.path.isfile(fa_file):
 print '      Tensor fit complete'
 
 #=============================================================================
-# Create a rough white matter mask from MNI space
+# Create a rough white matter mask based on the FA image
 #=============================================================================
 command = ( 'fslmaths {} -ero -ero -thr 0.1 -bin {}'.format(fa_file,
                                                              fa_ero_file) )
